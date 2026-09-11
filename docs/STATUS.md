@@ -31,19 +31,37 @@ mocked Hedera behavior is called out explicitly per CLAUDE.md section 54.
       revoked/expired intent yields no opportunity, wrong publisher secret
       rejected, cross-publisher feed access denied, queued delivery read
 
-**Not yet built (deferred to a follow-up pass):**
+## Phase 3 - x402 mandatory payment path
 
-## Phase 3 - x402 mandatory payment path (NOT STARTED)
+- [x] Blocky `/supported` startup check (`pnpm check:blocky`) - live-tested against
+      `https://api.testnet.blocky402.com`, confirms `hedera:testnet`/`exact` and
+      prints the facilitator's fee payer (`0.0.7162784` as of this writing)
+- [x] x402 Hedera resource server (`ExactHederaScheme` from `@x402/hedera/exact/server`,
+      `apps/api/src/x402/resource-server.ts`), `POST /v1/reach` protected via
+      `@x402/express`'s `paymentMiddleware` (`apps/api/src/x402/payment-middleware.ts`)
+- [x] Reach business logic (`apps/api/src/services/payment-service.ts`): idempotent
+      replay, opportunity/campaign validation, `BigInt` tinybar budget checks,
+      atomic opportunity-consume + delivery/payment creation, campaign spend tracking
+- [x] Settlement backfill via `onAfterSettle` hook (transaction id/payer written onto
+      the payment row once the facilitator actually settles - see
+      `docs/PAYMENT_FLOW.md` for why this can't happen synchronously in the handler)
+- [x] Standalone advertiser x402 client (`scripts/live-payment-smoke.ts`, gated behind
+      `LIVE_HEDERA_TESTS=1`)
+- [x] Unit + integration tests: tinybar budget math, idempotency replay, budget
+      exhaustion, opportunity double-consume, unpaid `POST /v1/reach` returns x402's
+      own 402 (not Hark's error JSON) - 23/23 passing, live-verified manually against
+      the real Blocky402 testnet facilitator (real 402 challenge with a real
+      `PAYMENT-REQUIRED` header observed)
+- [ ] **First live HBAR paid request against Blocky402 testnet - NOT DONE.** Requires
+      a real Hedera testnet payer account (`AGENT_HEDERA_ACCOUNT_ID` +
+      `AGENT_HEDERA_PRIVATE_KEY`, ECDSA) and a real `HEDERA_PAY_TO_ACCOUNT_ID` in
+      `.env` - both are still placeholders. Once set, run
+      `LIVE_HEDERA_TESTS=1 pnpm test:live-payment`.
 
-- [ ] Blocky `/supported` startup check (`pnpm check:blocky`)
-- [ ] x402 Hedera resource server, `POST /v1/reach` protection
-- [ ] Standalone advertiser x402 client
-- [ ] First live HBAR paid request against Blocky402 testnet
-- [ ] Idempotency + payment/delivery persistence
-
-No payment code exists yet - nothing in this repo has moved real or test HBAR.
-Do not claim the hackathon qualification requirement is satisfied until a real
-Blocky402-settled testnet payment has completed end to end.
+**Do not claim the hackathon qualification requirement is satisfied until the last
+item above has actually run and produced a real Blocky402-settled testnet
+transaction** - every other piece of the mandatory flow is wired and tested, but no
+real or test HBAR has moved yet.
 
 ## Phase 4 - Advertiser intelligence (NOT STARTED)
 
