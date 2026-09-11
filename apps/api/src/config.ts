@@ -13,4 +13,7 @@ export const config = {
   webUrl: process.env.WEB_URL ?? "http://localhost:3000",
   reachPriceTinybar: process.env.HARK_REACH_PRICE_TINYBAR ?? "100000",
   hederaNetwork: process.env.HEDERA_NETWORK ?? "hedera:testnet",
+  blocky402FacilitatorUrl:
+    process.env.BLOCKY402_FACILITATOR_URL ?? "https://api.testnet.blocky402.com",
+  hederaPayToAccountId: process.env.HEDERA_PAY_TO_ACCOUNT_ID ?? "",
 } as const;

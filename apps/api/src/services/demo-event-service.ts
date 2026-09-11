@@ -7,6 +7,9 @@ export type DemoEventType =
   | "intent.created"
   | "intent.updated"
   | "intent.revoked"
+  | "reach.payment_verified"
+  | "reach.payment_settled"
+  | "delivery.queued"
   | "delivery.served";
 
 type DemoEventRow = typeof schema.demoEvents.$inferSelect;
