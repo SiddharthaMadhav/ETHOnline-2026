@@ -1,0 +1,25 @@
+{
+  "name": "@hark-protocol/scripts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check-blocky": "tsx check-blocky.ts",
+    "live-payment-smoke": "tsx live-payment-smoke.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "echo \"no automated tests in @hark-protocol/scripts\" && exit 0"
+  },
+  "dependencies": {
+    "@hark-protocol/protocol": "workspace:*",
+    "@hiero-ledger/sdk": "2.85.0",
+    "@x402/core": "2.25.0",
+    "@x402/fetch": "2.25.0",
+    "@x402/hedera": "2.25.0",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  }
+}
