@@ -131,8 +131,64 @@ Blocky402-settled Hedera testnet transaction**, independently verified on-chain.
 evaluate -> decide -> at most one paid reach) is the only supported mode this pass,
 matching CLAUDE.md section 30's "prevents accidental wallet draining."
 
-## Phase 5 - Web demo (NOT STARTED)
+## Phase 5 - Web demo
 
-- [ ] Demo Publisher UI, agent dashboard, Hark Explorer
+New `apps/web` (`@hark-protocol/web`): Next.js 16 (App Router, Turbopack) +
+Tailwind v4 + shadcn/ui, scaffolded via the official `create-next-app`/`shadcn init`
+CLIs rather than hand-authored config (both have changed setup mechanics
+significantly since training).
+
+- [x] `lib/hark-client.ts` (server-only fetch wrapper; the `DEMO_PUBLISHER_KEY`
+      secret never reaches the browser - every Hark call goes through this or a
+      thin same-origin Next.js Route Handler) and `lib/classifier.ts` (the vague
+      intent classifier, section 14/30: OpenAI `generateText` + `Output.object`,
+      the same current API proven in `agents/runner`, with a deterministic
+      keyword-fallback and topic-id validation against the shared taxonomy)
+- [x] Demo Publisher screen (`/`): persona switch (alex/sam/taylor), topic chips +
+      free-text classification, active-intent panel (refresh/mark
+      fulfilled/revoke), ad slot polling a same-origin feed route, "Sponsored via
+      Hark" + "Why am I seeing this?" modal, HashScan link once settled
+- [x] Agent Dashboard (`/agents`): the three demo agents' static info plus a live,
+      polled event log
+- [x] Hark Explorer (`/explorer`): publishers, campaigns, active intent counts by
+      topic, anonymous opportunities, sanitized recent deliveries - never a
+      `subjectRef`, verified by both an automated test and manual inspection
+- [x] Backend additions this phase required: `POST /v1/demo-events` (open,
+      enum-validated write endpoint - agents now post their own
+      `agent.opportunities_fetched`/`relevance_scored`/`skipped` events, closing a
+      real gap where the Agent Dashboard would otherwise have had no source for
+      that data), `GET /v1/campaigns` (public list), `GET /v1/explorer/summary`
+      (new `explorer-service.ts`), and embedding active placements in
+      `GET /v1/publishers` (the web app had no way to discover a real placement id
+      to attach to an intent)
+- [x] **Live-verified in a real browser** (`chrome-devtools` skill, per the
+      standing instruction to check frontend changes in-browser, not just
+      typecheck them): created a fresh intent for "taylor" via free text - real
+      OpenAI call returned 98% confidence on "Laptops" with a clean, sanitized
+      summary; refresh/revoke both worked; the ad slot correctly showed the real
+      settled deliveries (with real HashScan links) already sitting in the DB from
+      the Phase 3/4 live payment tests for "alex" and "sam"; the Agent Dashboard's
+      live log showed the full history of both real payments end to end; the
+      Explorer rendered all sections with no `subjectRef` anywhere in the page.
+- [x] Real infra issue found and fixed: Turbopack (unlike `tsx`/`vitest`) doesn't
+      resolve TypeScript's `NodeNext`-style `.js`-import-to-`.ts`-file convention
+      for a source-only workspace package - `transpilePackages` alone didn't fix
+      it. Fix was to actually build `packages/protocol` to real `.js`/`.d.ts`
+      output (`pnpm --filter @hark-protocol/protocol build`) and point its
+      `exports` at `dist/` - the one package in this monorepo that now needs a
+      build step before other packages pick up its changes, since it's the only
+      one consumed by a bundler rather than run directly via `tsx`. **Anyone
+      editing `packages/protocol` must rebuild it before `apps/web`'s dev server
+      will see the change** (`apps/api`/`agents/runner`/`scripts` are unaffected -
+      they still run it directly via `tsx`).
+- [x] Also fixed: a `react-hooks` v7 lint rule (`set-state-in-effect`) flagged a
+      polling `useEffect` that called a memoized `useCallback` fetcher; the fix
+      (matching the pattern already used elsewhere in this app) is to define the
+      poll function inline inside the effect rather than hoisting it out, which
+      also removes the need for any stale-closure guard when the effect re-runs.
+
+**Out of scope for this phase (unchanged from earlier phases' notes):** the
+generic `@hark-protocol/sdk` package - the web app calls Hark directly through its
+own thin server-side wrapper instead.
 
 ## Phase 6/7 - Deployment, submission, bonuses (NOT STARTED)
