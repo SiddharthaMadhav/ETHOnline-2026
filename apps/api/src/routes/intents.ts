@@ -27,7 +27,7 @@ export function intentsRouter(db: HarkDatabase): ExpressRouter {
     try {
       const publisher = requirePublisher(req);
       const input = updateIntentInputSchema.parse(req.body);
-      const intent = await updateIntent(db, publisher.id, req.params.intentId, input);
+      const intent = await updateIntent(db, publisher.id, String(req.params.intentId), input);
       res.json(intent);
     } catch (error) {
       next(error);
@@ -38,7 +38,7 @@ export function intentsRouter(db: HarkDatabase): ExpressRouter {
     try {
       const publisher = requirePublisher(req);
       const input = revokeIntentInputSchema.parse(req.body ?? {});
-      const intent = await revokeIntent(db, publisher.id, req.params.intentId, input.reason);
+      const intent = await revokeIntent(db, publisher.id, String(req.params.intentId), input.reason);
       res.json(intent);
     } catch (error) {
       next(error);

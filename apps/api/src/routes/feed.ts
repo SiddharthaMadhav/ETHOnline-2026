@@ -10,7 +10,7 @@ export function feedRouter(db: HarkDatabase): ExpressRouter {
   router.get("/v1/feed/:subjectRef", auth, async (req, res, next) => {
     try {
       const publisher = requirePublisher(req);
-      const items = await listFeedForSubject(db, publisher.id, req.params.subjectRef);
+      const items = await listFeedForSubject(db, publisher.id, String(req.params.subjectRef));
       res.json({ items });
     } catch (error) {
       next(error);
@@ -20,7 +20,7 @@ export function feedRouter(db: HarkDatabase): ExpressRouter {
   router.post("/v1/deliveries/:deliveryId/served", auth, async (req, res, next) => {
     try {
       const publisher = requirePublisher(req);
-      const delivery = await markDeliveryServed(db, publisher.id, req.params.deliveryId);
+      const delivery = await markDeliveryServed(db, publisher.id, String(req.params.deliveryId));
       res.json(delivery);
     } catch (error) {
       next(error);
