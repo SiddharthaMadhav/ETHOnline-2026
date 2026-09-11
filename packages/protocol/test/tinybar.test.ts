@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { tinybarAdd, tinybarLte } from "../src/services/tinybar.js";
+import { tinybarAdd, tinybarLte } from "../src/tinybar.js";
 
 describe("tinybarLte", () => {
   it("is true when equal", () => {

@@ -1,6 +1,7 @@
 export * from "./constants.js";
 export * from "./taxonomy.js";
 export * from "./pii.js";
+export * from "./tinybar.js";
 export * from "./schemas/assurance.js";
 export * from "./schemas/publisher.js";
 export * from "./schemas/intent.js";

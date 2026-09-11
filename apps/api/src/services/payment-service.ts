@@ -1,11 +1,10 @@
 import { and, eq, isNull } from "drizzle-orm";
 import type { HarkDatabase } from "@hark-protocol/db";
 import { schema, generateId } from "@hark-protocol/db";
-import type { ReachConfirmation } from "@hark-protocol/protocol";
+import { tinybarAdd, tinybarLte, type ReachConfirmation } from "@hark-protocol/protocol";
 import { config } from "../config.js";
 import { AppError } from "../middleware/error-handler.js";
 import { recordDemoEvent } from "./demo-event-service.js";
-import { tinybarAdd, tinybarLte } from "./tinybar.js";
 
 type DeliveryRow = typeof schema.deliveries.$inferSelect;
 type PaymentRow = typeof schema.payments.$inferSelect;
