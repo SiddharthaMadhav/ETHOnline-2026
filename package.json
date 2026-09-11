@@ -8,6 +8,7 @@
   },
   "packageManager": "pnpm@9.15.9",
   "scripts": {
+    "postinstall": "pnpm --filter @hark-protocol/protocol run build",
     "dev": "pnpm --filter @hark-protocol/api dev",
     "build": "pnpm -r run build",
     "lint": "pnpm -r run lint",
