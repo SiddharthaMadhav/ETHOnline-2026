@@ -7,3 +7,4 @@ export * from "./schemas/intent.js";
 export * from "./schemas/campaign.js";
 export * from "./schemas/opportunity.js";
 export * from "./schemas/delivery.js";
+export * from "./schemas/reach.js";

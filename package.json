@@ -16,6 +16,8 @@
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
     "db:migrate": "pnpm --filter @hark-protocol/db run migrate",
-    "db:seed": "pnpm --filter @hark-protocol/db run seed"
+    "db:seed": "pnpm --filter @hark-protocol/db run seed",
+    "check:blocky": "pnpm --filter @hark-protocol/scripts run check-blocky",
+    "test:live-payment": "pnpm --filter @hark-protocol/scripts run live-payment-smoke"
   }
 }
