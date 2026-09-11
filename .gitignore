@@ -1,6 +1,8 @@
 node_modules/
+.pnpm-store/
 dist/
 build/
+.next/
 .env
 .env.*.local
 *.log
@@ -8,3 +10,4 @@ build/
 coverage/
 .turbo/
 *.tsbuildinfo
+CLAUDE.md
