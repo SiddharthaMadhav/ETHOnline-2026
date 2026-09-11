@@ -1,0 +1,21 @@
+{
+  "name": "hark-protocol",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Hark Protocol - open intent advertising protocol with x402 machine payments on Hedera",
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "pnpm@9.15.9",
+  "scripts": {
+    "dev": "pnpm --filter @hark-protocol/api dev",
+    "build": "pnpm -r run build",
+    "lint": "pnpm -r run lint",
+    "typecheck": "pnpm -r run typecheck",
+    "test": "pnpm -r run test",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "db:migrate": "pnpm --filter @hark-protocol/db run migrate",
+    "db:seed": "pnpm --filter @hark-protocol/db run seed"
+  }
+}
