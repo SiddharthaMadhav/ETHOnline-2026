@@ -11,6 +11,7 @@ import { config as loadEnv } from "dotenv";
 import { AGENT_CONFIGS, isAgentName } from "./configs/index.js";
 import { AdvertiserAgent } from "./agent.js";
 import { createAgentFetch } from "./x402-client.js";
+import { postDemoEvent } from "./demo-events-client.js";
 import { DeterministicScorer } from "./relevance/deterministic-scorer.js";
 import { OpenAIRelevanceScorer } from "./relevance/openai-scorer.js";
 import type { RelevanceScorer } from "./relevance/scorer.js";
@@ -100,6 +101,7 @@ async function main(): Promise<void> {
   );
 
   const opportunities = await agent.discover();
+  await postDemoEvent(harkApiUrl, "agent.opportunities_fetched", agentArg, { count: opportunities.length });
   if (opportunities.length === 0) {
     log("No opportunities discovered. Nothing to evaluate.");
     return;
@@ -111,10 +113,21 @@ async function main(): Promise<void> {
 
     const decision = await agent.evaluate(opportunity);
     log(`Relevance: ${decision.relevance.toFixed(2)} (${decision.reason})`);
+    await postDemoEvent(harkApiUrl, "agent.relevance_scored", agentArg, {
+      opportunityId: opportunity.id,
+      relevance: decision.relevance,
+      shouldAdvertise: decision.shouldAdvertise,
+    });
 
     const shouldPay = agent.decide(opportunity, decision);
     log(`Decision: ${shouldPay ? "advertise" : "skip"}`);
-    if (!shouldPay) continue;
+    if (!shouldPay) {
+      await postDemoEvent(harkApiUrl, "agent.skipped", agentArg, {
+        opportunityId: opportunity.id,
+        reason: decision.reason,
+      });
+      continue;
+    }
 
     log("POST /v1/reach");
     log("signing Hedera x402 payment");
