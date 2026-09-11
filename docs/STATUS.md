@@ -80,10 +80,56 @@ mocked Hedera behavior is called out explicitly per CLAUDE.md section 54.
 **The mandatory hackathon qualification flow is now proven end-to-end with a real
 Blocky402-settled Hedera testnet transaction**, independently verified on-chain.
 
-## Phase 4 - Advertiser intelligence (NOT STARTED)
+## Phase 4 - Advertiser intelligence
 
-- [ ] `RelevanceScorer` interface, deterministic scorer, OpenAI-backed scorer
-- [ ] Agent CLI (`agents/runner`), budget enforcement, three demo agents
+- [x] `RelevanceScorer` interface + `RelevanceDecision` schema
+      (`agents/runner/src/relevance/scorer.ts`)
+- [x] Deterministic fallback scorer (topic-distance + keyword-overlap bonus),
+      used automatically when `OPENAI_API_KEY` isn't set
+- [x] OpenAI-backed scorer using `ai@7`'s `generateText` + `Output.object` (not the
+      deprecated `generateObject`, confirmed by reading the installed package's own
+      JSDoc) - default-denies on any error or parse failure, never throws
+- [x] Agent-side budget gate (`budget.ts`, `BigInt` tinybar math, defense-in-depth
+      on top of Hark's own server-side enforcement)
+- [x] x402 client wiring factored out of `scripts/live-payment-smoke.ts` into
+      `x402-client.ts` (including the HBAR `allowedAssets` spend-control fix)
+- [x] `AdvertiserAgent` implementing CLAUDE.md section 16's
+      discover/evaluate/decide/reach interface; CLI (`--agent <name> --once`) for
+      the three seeded demo agents, fetching `/.well-known/hark.json` first per
+      section 34 rather than hardcoding the network
+- [x] Tests: deterministic scorer (exact/parent-child/no-overlap/keyword-bonus),
+      budget boundaries incl. beyond-safe-integer precision, `decide()`'s four
+      independent rejection conditions, OpenAI scorer's success and
+      default-deny-on-error paths (17/17 passing in `agents/runner`)
+- [x] **Live-verified for real**, using the same real OpenAI key and Hedera testnet
+      credentials as Phase 3:
+      - `pnpm agent:flylite` and `pnpm agent:pace` against a live laptop-intent
+        opportunity: real OpenAI calls returned relevance `0.00`-`0.02` with
+        genuinely on-topic reasoning (e.g. "does not match FlyLite Getaways'
+        flight and travel package offerings") -> correctly logged `Decision: skip`,
+        no payment ever attempted.
+      - `pnpm agent:novabook`: real OpenAI call returned relevance `0.92`-`0.96` ->
+        `Decision: advertise` -> real signed Hedera payment settled through
+        Blocky402. First attempt correctly hit `409 OPPORTUNITY_CONSUMED` against
+        an intent already reached in the Phase 3 test - the CLI logs the failed
+        attempt and moves to the next candidate rather than aborting the run (a
+        real gap found and fixed while testing live) - then succeeded against a
+        fresh intent: transaction `0.0.7162784@1789142269.996810205`
+        (HashScan: `https://hashscan.io/testnet/transaction/0.0.7162784-1789142269-996810205`),
+        independently confirmed via the Hedera mirror node
+        (`result: SUCCESS`, `0.0.10475939` debited / `0.0.10476224` credited
+        `100000` tinybar), delivery `del_27b66513-1e79-427d-9ef0-70f0eac542a5`
+        visible via `GET /v1/feed/sam` with the transaction id backfilled.
+      - Also fixed a real bug found in the process: `bestTopicDistance` in the
+        deterministic scorer wrongly gated on `isSameOrDescendant` before calling
+        `topicDistance`, which excludes sibling topics (e.g. laptop/desktop) that
+        share a common ancestor but aren't in an ancestor-descendant relationship
+        with each other - `topicDistance` alone is already the correct, complete
+        overlap test.
+
+**`--watch` continuous polling mode is deferred** - `--once` (single discover ->
+evaluate -> decide -> at most one paid reach) is the only supported mode this pass,
+matching CLAUDE.md section 30's "prevents accidental wallet draining."
 
 ## Phase 5 - Web demo (NOT STARTED)
 
