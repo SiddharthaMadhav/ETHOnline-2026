@@ -22,6 +22,9 @@
     "test:live-payment": "pnpm --filter @hark-protocol/scripts run live-payment-smoke",
     "agent:novabook": "pnpm --filter @hark-protocol/agent-runner run start -- --agent novabook --once",
     "agent:flylite": "pnpm --filter @hark-protocol/agent-runner run start -- --agent flylite --once",
-    "agent:pace": "pnpm --filter @hark-protocol/agent-runner run start -- --agent pace --once"
+    "agent:pace": "pnpm --filter @hark-protocol/agent-runner run start -- --agent pace --once",
+    "agent:novabook:bulk": "pnpm --filter @hark-protocol/agent-runner run start -- --agent novabook --bulk",
+    "agent:flylite:bulk": "pnpm --filter @hark-protocol/agent-runner run start -- --agent flylite --bulk",
+    "agent:pace:bulk": "pnpm --filter @hark-protocol/agent-runner run start -- --agent pace --bulk"
   }
 }

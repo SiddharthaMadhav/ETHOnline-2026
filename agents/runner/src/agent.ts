@@ -58,12 +58,20 @@ export class AdvertiserAgent {
   decide(opportunity: HarkOpportunity, decision: RelevanceDecision): boolean {
     if (!decision.shouldAdvertise) return false;
     if (decision.relevance < this.config.campaign.minRelevance) return false;
+    return this.canAffordAnotherReach(opportunity.pricing.amountTinybar);
+  }
 
+  /**
+   * Budget-only check, independent of relevance - lets a bulk run skip a
+   * candidate before spending an LLM call on it once the run budget is
+   * already exhausted (CLAUDE.md section 15: only code enforces money).
+   */
+  canAffordAnotherReach(priceTinybar: string): boolean {
     const state: RunBudgetState = {
       spentTinybar: this.spentTinybar,
       runBudgetTinybar: this.config.runBudgetTinybar,
     };
-    return canAffordReach(state, opportunity.pricing.amountTinybar, this.config.campaign.maxPriceTinybar);
+    return canAffordReach(state, priceTinybar, this.config.campaign.maxPriceTinybar);
   }
 
   async reach(opportunity: HarkOpportunity): Promise<ReachResult> {

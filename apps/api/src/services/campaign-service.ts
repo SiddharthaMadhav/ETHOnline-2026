@@ -17,6 +17,8 @@ function serialize(
     id: campaign.id,
     advertiserAgentId: campaign.advertiserAgentId,
     advertiserName: agent.displayName,
+    advertiserHederaAccountId: agent.hederaAccountId ?? undefined,
+    advertiserHcs14Id: agent.hcs14Id ?? undefined,
     name: campaign.name,
     productSummary: campaign.productSummary,
     targetTopics: topics.map((topic) => topic.topicId),

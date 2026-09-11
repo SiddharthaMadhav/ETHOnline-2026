@@ -13,8 +13,27 @@ function toHashscanTransactionId(transactionId: string): string {
   return `${account}-${timestamp.replace(".", "-")}`;
 }
 
+function truncateMiddle(value: string, keep = 18): string {
+  if (value.length <= keep * 2 + 1) return value;
+  return `${value.slice(0, keep)}…${value.slice(-keep)}`;
+}
+
+type HcsAuditEvent = {
+  event: string;
+  agentId: string;
+  campaignId: string;
+  publisherId: string;
+  topic: string;
+  amountTinybar: string;
+  transactionId: string;
+  timestamp: string;
+  sequenceNumber: number;
+  consensusTimestamp: string;
+};
+
 export function Explorer() {
   const [summary, setSummary] = useState<ExplorerSummary | null>(null);
+  const [auditEvents, setAuditEvents] = useState<HcsAuditEvent[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -35,8 +54,35 @@ export function Explorer() {
     };
   }, []);
 
+  useEffect(() => {
+    const topicId = summary?.hcsAuditTopicId;
+    if (!topicId) return;
+
+    let cancelled = false;
+    async function poll() {
+      try {
+        const res = await fetch(`/api/hcs-audit?topicId=${encodeURIComponent(topicId!)}`, { cache: "no-store" });
+        if (!res.ok || cancelled) return;
+        const body = (await res.json()) as { items: HcsAuditEvent[] };
+        setAuditEvents(body.items);
+      } catch {
+        // silent - retried on next tick
+      }
+    }
+    void poll();
+    const interval = setInterval(poll, 8000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [summary?.hcsAuditTopicId]);
+
   if (!summary) {
     return <div className="mx-auto max-w-4xl px-6 py-10 text-sm text-zinc-500">Loading...</div>;
+  }
+
+  function campaignName(campaignId: string): string {
+    return summary?.campaigns.find((c) => c.id === campaignId)?.advertiserName ?? campaignId;
   }
 
   return (
@@ -99,6 +145,11 @@ export function Explorer() {
               <p className="text-xs text-zinc-500">
                 Max {campaign.maxPriceTinybar} tinybar / reach - budget {campaign.totalBudgetTinybar} tinybar
               </p>
+              {campaign.advertiserHcs14Id && (
+                <p className="truncate font-mono text-[11px] text-zinc-400" title={campaign.advertiserHcs14Id}>
+                  HCS-14 identity: {truncateMiddle(campaign.advertiserHcs14Id)}
+                </p>
+              )}
             </div>
           ))}
         </CardContent>
@@ -147,6 +198,50 @@ export function Explorer() {
                 ) : (
                   <span className="text-xs text-zinc-400">settling...</span>
                 )}
+              </div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">HCS payment audit trail</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-2 text-sm">
+          {summary.hcsAuditTopicId ? (
+            <a
+              className="text-xs text-zinc-500 underline underline-offset-2 hover:text-zinc-700"
+              href={`https://hashscan.io/testnet/topic/${summary.hcsAuditTopicId}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Topic {summary.hcsAuditTopicId} on HashScan
+            </a>
+          ) : (
+            <span className="text-zinc-500">
+              No audit topic yet - it's created automatically the first time a payment settles.
+            </span>
+          )}
+          {auditEvents.length === 0 && summary.hcsAuditTopicId && (
+            <span className="text-zinc-500">No audit messages yet.</span>
+          )}
+          {auditEvents.map((event) => (
+            <div key={event.sequenceNumber}>
+              <Separator className="mb-2" />
+              <div className="flex items-center justify-between">
+                <span>
+                  #{event.sequenceNumber} - {campaignName(event.campaignId)} -{" "}
+                  {getTopic(event.topic)?.label ?? event.topic} - {event.amountTinybar} tinybar
+                </span>
+                <a
+                  className="text-xs text-zinc-500 underline underline-offset-2 hover:text-zinc-700"
+                  href={`https://hashscan.io/testnet/transaction/${toHashscanTransactionId(event.transactionId)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {event.transactionId}
+                </a>
               </div>
             </div>
           ))}

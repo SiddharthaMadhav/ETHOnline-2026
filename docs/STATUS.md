@@ -187,8 +187,116 @@ significantly since training).
       poll function inline inside the effect rather than hoisting it out, which
       also removes the need for any stale-closure guard when the effect re-runs.
 
-**Out of scope for this phase (unchanged from earlier phases' notes):** the
-generic `@hark-protocol/sdk` package - the web app calls Hark directly through its
-own thin server-side wrapper instead.
+**Update (post-Phase-5):** the `@hark-protocol/sdk` package now exists (see
+below) and `apps/web`'s `lib/hark-client.ts` was refactored to use it - the
+note above describing it as out of scope no longer applies.
 
-## Phase 6/7 - Deployment, submission, bonuses (NOT STARTED)
+## Post-Phase-5 fixes and Phase 7 bonuses (in progress)
+
+- [x] **Fixed a real bug found while demoing**: all three `pnpm agent:*`
+      scripts shared one `AGENT_CAMPAIGN_ID`/wallet in `.env`, so
+      `agent:flylite`/`agent:pace` were silently querying *NovaBook's* real
+      seeded campaign (laptop opportunities) and just re-scoring them under a
+      different product persona - they never saw their own seeded campaigns'
+      real target-topic opportunities (e.g. FlyLite never saw a travel
+      intent). Fixed by moving to per-agent env vars
+      (`NOVABOOK_/FLYLITE_/PACE_` + `_HEDERA_ACCOUNT_ID`/`_HEDERA_PRIVATE_KEY`/
+      `_CAMPAIGN_ID`/`_MAX_PRICE_TINYBAR`/`_RUN_BUDGET_TINYBAR`), read via
+      `requireAgentEnv`/`optionalAgentEnv` in `agents/runner/src/cli.ts`. All
+      three currently still share one funded testnet wallet (only the
+      campaign id differs) - a deliberate deviation from CLAUDE.md section 26's
+      single shared `AGENT_*` block, since we don't have three separately
+      funded testnet accounts. Live-verified: `pnpm agent:flylite` now
+      correctly discovers and pays for a real `travel.flight` intent
+      end-to-end (tx `0.0.7162784@1789162167.441328177`), instead of only
+      ever seeing laptop opportunities.
+- [x] **`agents/runner`'s CLI gained a `--bulk` mode** (plus optional
+      `--max-reaches <n>`) alongside the existing default (stop after the
+      first successful paid reach, CLAUDE.md section 30). `--bulk` keeps
+      paying for every relevant, affordable candidate discovered in one run,
+      bounded by the same agent-side run budget and server-side campaign
+      budget checks - `AdvertiserAgent.canAffordAnotherReach()` is now
+      checked *before* each LLM relevance call too, so a budget-exhausted run
+      stops scoring candidates rather than wasting OpenAI calls on
+      unaffordable ones. New `pnpm agent:<name>:bulk` scripts. 17/17
+      `agents/runner` tests still pass.
+- [x] **`@hark-protocol/sdk`** now exists (`packages/sdk`), implementing
+      CLAUDE.md section 20's `HarkPublisherClient` (`intents.create/update/
+      revoke`, `feed.get`, `deliveries.markServed`) and `HarkAdvertiserClient`
+      (free `discovery.get`/`topics.list`/`campaigns.create/list`/
+      `opportunities.list`, paid `reach()` - takes any x402-capable `fetch`,
+      never owns Hedera keys). 12/12 unit tests. `apps/web/lib/hark-client.ts`
+      was refactored to delegate to it (still server-only - `DEMO_PUBLISHER_KEY`
+      never reaches the browser); `listPublishers`/`listDemoEvents`/
+      `getExplorerSummary` stay as raw fetches since they're Hark-specific
+      demo/observability endpoints with no SDK-spec equivalent. **Live-verified
+      in a real browser** (chrome-devtools skill): create/refresh/revoke
+      intent (Sam, "Furniture" chip), feed polling, and campaign-joined ad
+      rendering (Alex/Sam's real NovaBook deliveries) all worked with zero
+      console errors and all-200 network requests through the SDK-backed path.
+- [x] **HCS-14 advertiser identity** (bonus #2): `packages/protocol/src/hcs14.ts`
+      (`computeHcs14Id`, exported via the `@hark-protocol/protocol/hcs14`
+      subpath - deliberately *not* in the main barrel, since that barrel is
+      bundled into `apps/web` client components and this uses `node:crypto`)
+      computes a syntactically-valid `uaid:aid:{base58(sha384(canonicalJson))}
+      ;uid=...;registry=...;proto=...;nativeId=...` id per the published
+      grammar at hol.org/docs/standards/hcs-14. **This is not registered with
+      or resolvable via any live HCS-14 registry** - `registry=hark-protocol`/
+      `proto=hark-x402` are Hark's own self-declared values, computed locally,
+      exactly matching CLAUDE.md section 36's framing of HCS-14 as optional
+      and non-blocking. `packages/db/src/seed.ts` now populates
+      `advertiser_agents.hederaAccountId`/`hcs14Id` for all three seeded
+      agents (backfilling existing rows too); `campaignSchema` gained optional
+      `advertiserHederaAccountId`/`advertiserHcs14Id`, threaded through
+      `campaign-service.ts`'s existing agent-row join. Displayed in the Agent
+      Dashboard (`apps/web/components/hark/agent-dashboard.tsx`), replacing a
+      stale single shared `AGENT_HEDERA_ACCOUNT_ID` display that broke when
+      the env vars above were split per-agent. 4/4 new protocol unit tests;
+      live-verified in-browser showing three distinct HCS-14 ids.
+- [x] **HCS payment/action audit trail** (bonus #1, CLAUDE.md section 35):
+      `apps/api/src/hcs/{client,topic,audit}.ts`. The API needed its own
+      Hedera-keyed operator for this (it previously held none - x402 payments
+      never required the API to hold a private key); reuses the
+      `HEDERA_PAY_TO_ACCOUNT_ID` account via a new `HEDERA_PAY_TO_PRIVATE_KEY`
+      env var, supplied by the user specifically for this purpose. Topic is
+      lazily created on first settlement (not at boot, so a Hedera hiccup here
+      can never delay startup or the mandatory payment path) and cached
+      in-memory; `HARK_HCS_TOPIC_ID` pins it across restarts. Wired into
+      `payment-service.ts`'s `finalizeSettledPayment`, entirely best-effort
+      (try/catch, logs and moves on - never throws into the settlement path).
+      Payload is exactly CLAUDE.md's suggested shape
+      (`schema/event/agentId/campaignId/publisherId/topic/amountTinybar/
+      transactionId/timestamp`) - no `subjectRef`, no `semanticSummary`, no
+      user identity, ever. **Live-verified end-to-end**: real topic
+      `0.0.10486387` created on Hedera testnet
+      (https://hashscan.io/testnet/topic/0.0.10486387), a real settlement
+      (`0.0.7162784@1789165369.826772935`) produced a real HCS message,
+      independently confirmed via the public testnet mirror node
+      (`GET /api/v1/topics/0.0.10486387/messages`) - decoded payload matched
+      exactly, with no PII. Two new API tests (mocking `hcs/audit.js` so the
+      regular test suite never makes a real Hedera call, per CLAUDE.md section
+      28) assert: no audit event when the intent has no topic recorded, and
+      the exact non-PII payload shape when it does. 23/23 `apps/api` tests
+      still pass.
+
+- [x] **Explorer UI surfaces both bonus features** for demo purposes (they
+      were previously only visible via server logs or manually querying
+      HashScan/the mirror node): each campaign card now shows its
+      `advertiserHcs14Id`; a new "HCS payment audit trail" card shows the
+      audit topic's HashScan link plus recent settled events, fetched live by
+      a new `apps/web/app/api/hcs-audit/route.ts` route handler that reads
+      and decodes messages directly from the public Hedera testnet mirror
+      node (`GET /api/v1/topics/:topicId/messages`) - independent
+      confirmation, not just Hark's own claim. `apps/api`'s
+      `hcs/topic.ts` gained `getCachedAuditTopicId()` (read-only, never
+      triggers topic creation) so the frequently-polled `/v1/explorer/summary`
+      endpoint can display the topic id without ever spending real HBAR on a
+      page view. Live-verified in-browser: real topic link, real decoded
+      audit event (`#1`, NovaBook Agent, Laptops, 100000 tinybar, working
+      HashScan tx link), zero console errors.
+
+## Phase 6/7 - Deployment, submission, remaining bonuses (NOT STARTED)
+
+Still open: deployed Postgres/API/web, live payment run against the deployed
+API, README, demo script/video, CI, HTS asset support, multi-agent bidding,
+better discovery/UCP.

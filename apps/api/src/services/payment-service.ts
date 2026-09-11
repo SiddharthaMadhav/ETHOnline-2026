@@ -5,6 +5,7 @@ import { tinybarAdd, tinybarLte, type ReachConfirmation } from "@hark-protocol/p
 import { config } from "../config.js";
 import { AppError } from "../middleware/error-handler.js";
 import { recordDemoEvent } from "./demo-event-service.js";
+import { recordReachSettledAudit } from "../hcs/audit.js";
 
 type DeliveryRow = typeof schema.deliveries.$inferSelect;
 type PaymentRow = typeof schema.payments.$inferSelect;
@@ -199,4 +200,23 @@ export async function finalizeSettledPayment(
     deliveryId: delivery.id,
     transactionId: settlement.transactionId,
   });
+
+  // Best-effort HCS audit trail (CLAUDE.md section 35) - never PII, never
+  // subjectRef, never blocks/fails the payment flow above.
+  const campaign = await db.query.campaigns.findFirst({
+    where: eq(schema.campaigns.id, delivery.campaignId),
+  });
+  const [primaryTopic] = await db.query.intentTopics.findMany({
+    where: eq(schema.intentTopics.intentId, delivery.intentId),
+  });
+  if (campaign && primaryTopic) {
+    await recordReachSettledAudit({
+      agentId: campaign.advertiserAgentId,
+      campaignId: delivery.campaignId,
+      publisherId: delivery.publisherId,
+      topic: primaryTopic.topicId,
+      amountTinybar: config.reachPriceTinybar,
+      transactionId: settlement.transactionId,
+    });
+  }
 }

@@ -2,6 +2,7 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { config as loadEnv } from "dotenv";
 import { eq } from "drizzle-orm";
+import { computeHcs14Id } from "@hark-protocol/protocol/hcs14";
 import { createDb } from "./client.js";
 import { advertiserAgents, campaignTopics, campaigns, placements, publishers } from "./schema.js";
 import { generateId } from "./ids.js";
@@ -132,24 +133,56 @@ const DEMO_AGENTS: DemoAgentSeed[] = [
   },
 ];
 
+/**
+ * Each agent's own Hedera account id, sourced from the same per-agent env
+ * vars the CLI reads (e.g. NOVABOOK_HEDERA_ACCOUNT_ID) - see agents/runner's
+ * cli.ts. Falls back to a placeholder if unset so seeding still works before
+ * a real wallet is configured; the HCS-14 id computed from it is then just
+ * as much of a placeholder until re-seeded with a real account id.
+ */
+function hederaAccountIdForAgent(slug: string): string {
+  return process.env[`${slug.toUpperCase()}_HEDERA_ACCOUNT_ID`] ?? "0.0.0";
+}
+
 async function upsertAgentAndCampaign(db: ReturnType<typeof createDb>, agent: DemoAgentSeed) {
+  const hederaAccountId = hederaAccountIdForAgent(agent.slug);
+  const hederaNetwork = process.env.HEDERA_NETWORK ?? "hedera:testnet";
+  const hcs14Id = computeHcs14Id({
+    uid: agent.slug,
+    name: agent.displayName,
+    nativeId: `${hederaNetwork}:${hederaAccountId}`,
+  });
+
   const existingAgent = await db.query.advertiserAgents.findFirst({
     where: eq(advertiserAgents.slug, agent.slug),
   });
 
-  const agentRow =
-    existingAgent ??
-    (
+  let agentRow = existingAgent;
+  if (!agentRow) {
+    agentRow = (
       await db
         .insert(advertiserAgents)
         .values({
           id: generateId("agent"),
           slug: agent.slug,
           displayName: agent.displayName,
+          hederaAccountId,
+          hcs14Id,
           active: true,
         })
         .returning()
     )[0]!;
+  } else if (agentRow.hederaAccountId !== hederaAccountId || agentRow.hcs14Id !== hcs14Id) {
+    // Backfill/refresh for agents seeded before these columns were populated,
+    // or after a wallet/account id changes in .env.
+    agentRow = (
+      await db
+        .update(advertiserAgents)
+        .set({ hederaAccountId, hcs14Id })
+        .where(eq(advertiserAgents.id, agentRow.id))
+        .returning()
+    )[0]!;
+  }
 
   const existingCampaign = await db.query.campaigns.findFirst({
     where: (fields, { eq: eqOp }) => eqOp(fields.advertiserAgentId, agentRow.id),
@@ -193,7 +226,9 @@ async function main() {
 
   for (const agent of DEMO_AGENTS) {
     const { agent: agentRow, campaign } = await upsertAgentAndCampaign(db, agent);
-    console.log(`${agentRow.displayName}: agent=${agentRow.id} campaign=${campaign.id}`);
+    console.log(
+      `${agentRow.displayName}: agent=${agentRow.id} campaign=${campaign.id} wallet=${agentRow.hederaAccountId} hcs14Id=${agentRow.hcs14Id}`,
+    );
   }
 
   console.log("Seed complete.");

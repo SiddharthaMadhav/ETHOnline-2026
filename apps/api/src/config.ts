@@ -16,4 +16,8 @@ export const config = {
   blocky402FacilitatorUrl:
     process.env.BLOCKY402_FACILITATOR_URL ?? "https://api.testnet.blocky402.com",
   hederaPayToAccountId: process.env.HEDERA_PAY_TO_ACCOUNT_ID ?? "",
+  // HCS audit trail only (CLAUDE.md section 35) - never used for receiving
+  // x402 payments, which don't require the API to hold any Hedera key.
+  hederaOperatorPrivateKey: process.env.HEDERA_PAY_TO_PRIVATE_KEY ?? "",
+  hcsTopicId: process.env.HARK_HCS_TOPIC_ID ?? "",
 } as const;

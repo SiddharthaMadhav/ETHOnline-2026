@@ -13,6 +13,7 @@
   "dependencies": {
     "@hark-protocol/db": "workspace:*",
     "@hark-protocol/protocol": "workspace:*",
+    "@hiero-ledger/sdk": "2.85.0",
     "@x402/core": "2.25.0",
     "@x402/express": "2.25.0",
     "@x402/hedera": "2.25.0",

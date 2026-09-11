@@ -14,7 +14,12 @@ type DemoEvent = {
   createdAt: string;
 };
 
-type Campaign = { advertiserAgentId: string; advertiserName: string };
+type Campaign = {
+  advertiserAgentId: string;
+  advertiserName: string;
+  advertiserHederaAccountId?: string;
+  advertiserHcs14Id?: string;
+};
 
 function summarize(event: DemoEvent): string {
   const data = (event.data ?? {}) as Record<string, unknown>;
@@ -40,7 +45,7 @@ function summarize(event: DemoEvent): string {
   }
 }
 
-export function AgentDashboard({ walletAccountId }: { walletAccountId?: string }) {
+export function AgentDashboard() {
   const [events, setEvents] = useState<DemoEvent[]>([]);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
 
@@ -78,6 +83,19 @@ export function AgentDashboard({ walletAccountId }: { walletAccountId?: string }
     return campaign?.advertiserName ?? actor;
   }
 
+  function campaignForSlug(slug: string): Campaign | undefined {
+    // Demo agent slugs (novabook/flylite/pace) match the seeded agent's
+    // display-name convention closely enough to look up by campaign name
+    // prefix - the live campaigns feed doesn't carry the agent slug itself,
+    // only its DB id, name and advertiser display name.
+    return campaigns.find((c) => c.advertiserName.toLowerCase().startsWith(slug));
+  }
+
+  function truncateMiddle(value: string, keep = 18): string {
+    if (value.length <= keep * 2 + 1) return value;
+    return `${value.slice(0, keep)}…${value.slice(-keep)}`;
+  }
+
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-6 py-10">
       <div>
@@ -86,30 +104,43 @@ export function AgentDashboard({ walletAccountId }: { walletAccountId?: string }
           The three seeded demo agents and a live feed of their discover -&gt; evaluate -&gt; decide -&gt;
           pay activity, reported by the agent CLI and Hark itself.
         </p>
-        {walletAccountId && (
-          <p className="mt-1 text-xs text-zinc-400">Configured payer wallet (from .env): {walletAccountId}</p>
-        )}
       </div>
 
       <div className="grid gap-3 sm:grid-cols-3">
-        {DEMO_AGENTS.map((agent) => (
-          <Card key={agent.slug}>
-            <CardHeader>
-              <CardTitle className="text-base">{agent.displayName}</CardTitle>
-              <CardDescription>{agent.campaignName}</CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-2">
-              <div className="flex flex-wrap gap-1">
-                {agent.targetTopics.map((topicId) => (
-                  <Badge key={topicId} variant="outline">
-                    {getTopic(topicId)?.label ?? topicId}
-                  </Badge>
-                ))}
-              </div>
-              <p className="text-xs text-zinc-500">Min relevance: {agent.minRelevance}</p>
-            </CardContent>
-          </Card>
-        ))}
+        {DEMO_AGENTS.map((agent) => {
+          const campaign = campaignForSlug(agent.slug);
+          return (
+            <Card key={agent.slug}>
+              <CardHeader>
+                <CardTitle className="text-base">{agent.displayName}</CardTitle>
+                <CardDescription>{agent.campaignName}</CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-2">
+                <div className="flex flex-wrap gap-1">
+                  {agent.targetTopics.map((topicId) => (
+                    <Badge key={topicId} variant="outline">
+                      {getTopic(topicId)?.label ?? topicId}
+                    </Badge>
+                  ))}
+                </div>
+                <p className="text-xs text-zinc-500">Min relevance: {agent.minRelevance}</p>
+                {campaign?.advertiserHederaAccountId && (
+                  <p className="font-mono text-xs text-zinc-400">
+                    Wallet: {campaign.advertiserHederaAccountId}
+                  </p>
+                )}
+                {campaign?.advertiserHcs14Id && (
+                  <p
+                    className="truncate font-mono text-[11px] text-zinc-400"
+                    title={campaign.advertiserHcs14Id}
+                  >
+                    HCS-14: {truncateMiddle(campaign.advertiserHcs14Id)}
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       <div>

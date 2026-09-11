@@ -1,5 +1,5 @@
 {
-  "name": "@hark-protocol/protocol",
+  "name": "@hark-protocol/sdk",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -9,10 +9,6 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
-    },
-    "./hcs14": {
-      "types": "./dist/hcs14.d.ts",
-      "default": "./dist/hcs14.js"
     }
   },
   "scripts": {
@@ -21,7 +17,9 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "zod": "^3.23.8"
+    "@hark-protocol/protocol": "workspace:*",
+    "@x402/core": "2.25.0",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",

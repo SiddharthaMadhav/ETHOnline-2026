@@ -4,6 +4,7 @@ import { schema } from "@hark-protocol/db";
 import type { HarkOpportunity } from "@hark-protocol/protocol";
 import { listActiveCampaigns } from "./campaign-service.js";
 import { listOpportunities } from "./opportunity-service.js";
+import { getCachedAuditTopicId } from "../hcs/topic.js";
 
 export type ExplorerPublisher = {
   id: string;
@@ -92,6 +93,8 @@ export type ExplorerSummary = {
   activeIntentTopicCounts: ExplorerTopicCount[];
   opportunities: HarkOpportunity[];
   recentDeliveries: ExplorerDelivery[];
+  /** CLAUDE.md section 35 bonus - undefined until the first real settlement creates one. */
+  hcsAuditTopicId?: string;
 };
 
 export async function getExplorerSummary(db: HarkDatabase): Promise<ExplorerSummary> {
@@ -103,5 +106,12 @@ export async function getExplorerSummary(db: HarkDatabase): Promise<ExplorerSumm
     listRecentDeliveries(db, 20),
   ]);
 
-  return { publishers, campaigns, activeIntentTopicCounts, opportunities, recentDeliveries };
+  return {
+    publishers,
+    campaigns,
+    activeIntentTopicCounts,
+    opportunities,
+    recentDeliveries,
+    hcsAuditTopicId: getCachedAuditTopicId(),
+  };
 }

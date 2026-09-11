@@ -19,6 +19,9 @@ export const campaignSchema = z.object({
   id: z.string(),
   advertiserAgentId: z.string(),
   advertiserName: z.string(),
+  /** CLAUDE.md section 36 (HCS-14 bonus): optional, non-blocking agent identity metadata. */
+  advertiserHederaAccountId: z.string().optional(),
+  advertiserHcs14Id: z.string().optional(),
   name: z.string(),
   productSummary: z.string(),
   targetTopics: z.array(z.string().refine(isValidTopicId, { message: "Unknown topic id" })).min(1),
