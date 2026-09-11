@@ -8,6 +8,7 @@ import { campaignsRouter } from "./routes/campaigns.js";
 import { opportunitiesRouter } from "./routes/opportunities.js";
 import { feedRouter } from "./routes/feed.js";
 import { demoEventsRouter } from "./routes/demo-events.js";
+import { explorerRouter } from "./routes/explorer.js";
 import { reachRouter } from "./routes/reach.js";
 import { errorHandler, notFoundHandler } from "./middleware/error-handler.js";
 import { createReachPaymentMiddleware } from "./x402/payment-middleware.js";
@@ -25,6 +26,7 @@ export function createApp(db: HarkDatabase): Express {
   app.use(opportunitiesRouter(db));
   app.use(feedRouter(db));
   app.use(demoEventsRouter(db));
+  app.use(explorerRouter(db));
 
   // x402 payment protection for POST /v1/reach - must be mounted before the
   // route handler below so it can verify/settle around it.
