@@ -3,7 +3,7 @@ import path from "node:path";
 import { config as loadEnv } from "dotenv";
 import { eq } from "drizzle-orm";
 import { createDb } from "./client.js";
-import { advertiserAgents, campaigns, placements, publishers } from "./schema.js";
+import { advertiserAgents, campaignTopics, campaigns, placements, publishers } from "./schema.js";
 import { generateId } from "./ids.js";
 import { hashSecret } from "./secrets.js";
 
@@ -156,10 +156,12 @@ async function upsertAgentAndCampaign(db: ReturnType<typeof createDb>, agent: De
   });
   if (existingCampaign) return { agent: agentRow, campaign: existingCampaign };
 
+  const campaignId = generateId("campaign");
+
   const [campaign] = await db
     .insert(campaigns)
     .values({
-      id: generateId("campaign"),
+      id: campaignId,
       advertiserAgentId: agentRow.id,
       name: agent.campaignName,
       productSummary: agent.productSummary,
@@ -171,6 +173,10 @@ async function upsertAgentAndCampaign(db: ReturnType<typeof createDb>, agent: De
       active: true,
     })
     .returning();
+
+  await db.insert(campaignTopics).values(
+    agent.targetTopics.map((topicId) => ({ campaignId, topicId })),
+  );
 
   return { agent: agentRow, campaign: campaign! };
 }

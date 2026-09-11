@@ -104,7 +104,16 @@ async function main() {
   const signer = createClientHederaSigner(accountId, PrivateKey.fromStringECDSA(privateKey), {
     network,
   });
-  const client = new x402Client().register(network as `${string}:${string}`, new ExactHederaScheme(signer));
+  const maxPriceTinybar = process.env.AGENT_MAX_PRICE_TINYBAR ?? "150000";
+  const client = new x402Client()
+    .register(network as `${string}:${string}`, new ExactHederaScheme(signer))
+    // The client's spend-control default only recognizes each network's
+    // "default" asset (Hedera's is USDC) capped at $1 - HBAR (0.0.0) needs an
+    // explicit allow-list entry, capped at this agent's own configured max
+    // price per CLAUDE.md section 25's budget-enforcement requirement.
+    .setSpendControls({
+      allowedAssets: [{ network: network as `${string}:${string}`, asset: "0.0.0", maxAmountPerPayment: maxPriceTinybar }],
+    });
   const fetchWithPayment = wrapFetchWithPayment(fetch, client);
 
   console.log("retrying paid request");

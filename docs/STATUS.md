@@ -52,16 +52,33 @@ mocked Hedera behavior is called out explicitly per CLAUDE.md section 54.
       own 402 (not Hark's error JSON) - 23/23 passing, live-verified manually against
       the real Blocky402 testnet facilitator (real 402 challenge with a real
       `PAYMENT-REQUIRED` header observed)
-- [ ] **First live HBAR paid request against Blocky402 testnet - NOT DONE.** Requires
-      a real Hedera testnet payer account (`AGENT_HEDERA_ACCOUNT_ID` +
-      `AGENT_HEDERA_PRIVATE_KEY`, ECDSA) and a real `HEDERA_PAY_TO_ACCOUNT_ID` in
-      `.env` - both are still placeholders. Once set, run
-      `LIVE_HEDERA_TESTS=1 pnpm test:live-payment`.
+- [x] **First live HBAR paid request against Blocky402 testnet - DONE.** Ran
+      `LIVE_HEDERA_TESTS=1 pnpm test:live-payment` against the live API + the real
+      Blocky402 testnet facilitator with a funded testnet payer account. Result:
+      - Transaction: `0.0.7162784@1789141024.449717008`
+        (HashScan: `https://hashscan.io/testnet/transaction/0.0.7162784-1789141024-449717008`)
+      - Independently confirmed via the public Hedera testnet mirror node
+        (`GET /api/v1/transactions/...`): `result: SUCCESS`, transfers show
+        `0.0.10475939` (advertiser agent) debited `100000` tinybar and
+        `0.0.10476224` (`HEDERA_PAY_TO_ACCOUNT_ID`) credited `100000` tinybar -
+        this is not just "our API said success," it's verified against Hedera's
+        own public ledger data, independent of Hark.
+      - Delivery `del_6de6a56d-ef8b-489d-9620-b4538d6d8d75` queued, payment row
+        backfilled with the real `transactionId`/`payerAccountId`, campaign
+        `spentTinybar` incremented to `100000`, and the full event sequence
+        (`intent.created` -> `reach.payment_verified` -> `delivery.queued` ->
+        `reach.payment_settled`) shows up in `GET /v1/demo-events` and the
+        delivery is visible via `GET /v1/feed/alex`.
+      - Fixed a real bug found in the process: `packages/db/src/seed.ts` created
+        campaigns but never inserted their `campaign_topics` rows, so
+        `GET /v1/opportunities?campaignId=...` always returned empty for seeded
+        campaigns (campaign-topic filtering degrades to "no topics -> no match").
+        Also added `allowedAssets` spend-control config to the smoke client -
+        `@x402/fetch`'s client-side spend guard only recognizes each network's
+        "default" asset (Hedera's is USDC) unless HBAR is explicitly allow-listed.
 
-**Do not claim the hackathon qualification requirement is satisfied until the last
-item above has actually run and produced a real Blocky402-settled testnet
-transaction** - every other piece of the mandatory flow is wired and tested, but no
-real or test HBAR has moved yet.
+**The mandatory hackathon qualification flow is now proven end-to-end with a real
+Blocky402-settled Hedera testnet transaction**, independently verified on-chain.
 
 ## Phase 4 - Advertiser intelligence (NOT STARTED)
 
