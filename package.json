@@ -18,6 +18,9 @@
     "db:migrate": "pnpm --filter @hark-protocol/db run migrate",
     "db:seed": "pnpm --filter @hark-protocol/db run seed",
     "check:blocky": "pnpm --filter @hark-protocol/scripts run check-blocky",
-    "test:live-payment": "pnpm --filter @hark-protocol/scripts run live-payment-smoke"
+    "test:live-payment": "pnpm --filter @hark-protocol/scripts run live-payment-smoke",
+    "agent:novabook": "pnpm --filter @hark-protocol/agent-runner run start -- --agent novabook --once",
+    "agent:flylite": "pnpm --filter @hark-protocol/agent-runner run start -- --agent flylite --once",
+    "agent:pace": "pnpm --filter @hark-protocol/agent-runner run start -- --agent pace --once"
   }
 }
