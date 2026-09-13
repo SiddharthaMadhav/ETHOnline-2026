@@ -245,6 +245,15 @@
     margin-bottom: 6px;
   }
   .link-card a { font-size: 15px; word-break: break-all; }
+  .aside {
+    font-size: 13px;
+    color: var(--ink-soft);
+    opacity: 0.85;
+    border-left: 2px solid var(--purple-pale);
+    padding-left: 14px;
+    margin-top: 20px;
+    max-width: 640px;
+  }
   .slide-number {
     position: absolute;
     bottom: 24px;
@@ -304,6 +313,9 @@
         <div class="arrow">→</div>
         <div class="step">Relevant ad</div>
       </div>
+      <p class="aside">Side benefit for publishers: reporting intent to Hark is far
+      less work than building and operating an ad-sales stack — publishers stay
+      focused on their own product experience, and monetize through Hark instead.</p>
     </div>
     <div class="slide-number">03</div>
   </section>
@@ -386,6 +398,9 @@
       </table>
       <p class="lede" style="margin-top:20px;">Every transaction above is independently confirmed against the public
       Hedera testnet mirror node — not just Hark's own API response.</p>
+      <p class="aside">Reach price is currently a single flat rate set by the
+      Hark protocol (<code>HARK_REACH_PRICE_TINYBAR</code>), not by individual
+      publishers. Per-publisher or per-placement pricing is future work.</p>
     </div>
     <div class="slide-number">06</div>
   </section>
@@ -446,10 +461,6 @@
         <div class="link-card">
           <div class="kind">Source</div>
           <a href="https://github.com/SiddharthaMadhav/ETHOnline-2026" target="_blank" rel="noopener">github.com/SiddharthaMadhav/ETHOnline-2026 ↗</a>
-        </div>
-        <div class="link-card">
-          <div class="kind">Build log (live-verified)</div>
-          <a href="STATUS.md">docs/STATUS.md</a>
         </div>
       </div>
     </div>

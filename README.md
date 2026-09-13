@@ -118,9 +118,7 @@ docs/                Protocol, architecture, payment-flow docs, pitch deck
 ```
 
 See [`docs/PAYMENT_FLOW.md`](docs/PAYMENT_FLOW.md) for why settlement is
-backfilled asynchronously, and [`docs/STATUS.md`](docs/STATUS.md) for a
-live-verified, phase-by-phase build log (every claim above is traceable to a
-real testnet transaction or mirror-node lookup recorded there).
+backfilled asynchronously.
 
 ## Pitch deck
 
