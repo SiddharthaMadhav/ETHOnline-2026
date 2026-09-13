@@ -1,10 +1,21 @@
 {
   "name": "@hark-protocol/sdk",
   "version": "0.1.0",
-  "private": true,
+  "description": "Publisher and advertiser clients for the Hark Protocol - intent advertising with x402 payments on Hedera.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SiddharthaMadhav/ETHOnline-2026.git",
+    "directory": "packages/sdk"
+  },
+  "keywords": ["hark-protocol", "hedera", "x402", "intent-advertising"],
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "files": ["dist"],
+  "publishConfig": {
+    "access": "public"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",

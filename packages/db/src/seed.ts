@@ -24,10 +24,25 @@ const demoPublisherKey = process.env.DEMO_PUBLISHER_KEY ?? "replace-me";
 export const DEMO_SUBJECT_REFS = ["alex", "sam", "taylor"] as const;
 
 async function upsertPublisher(db: ReturnType<typeof createDb>) {
+  // Optional: which Hedera account the Demo Publisher's revenue-share payout
+  // goes to (docs/STATUS.md). Left unset by default - a publisher without
+  // one just accrues an unpaid balance until one is configured.
+  const payoutHederaAccountId = process.env.DEMO_PUBLISHER_PAYOUT_ACCOUNT_ID;
+
   const existing = await db.query.publishers.findFirst({
     where: eq(publishers.slug, "demo-publisher"),
   });
-  if (existing) return existing;
+  if (existing) {
+    if (payoutHederaAccountId && existing.payoutHederaAccountId !== payoutHederaAccountId) {
+      const [updated] = await db
+        .update(publishers)
+        .set({ payoutHederaAccountId })
+        .where(eq(publishers.id, existing.id))
+        .returning();
+      return updated!;
+    }
+    return existing;
+  }
 
   const apiKeyHash = await hashSecret(demoPublisherKey);
   const [publisher] = await db
@@ -38,6 +53,7 @@ async function upsertPublisher(db: ReturnType<typeof createDb>) {
       name: "Demo Publisher",
       description: "Simulated consumer platform used for the Hark Protocol demo",
       apiKeyHash,
+      payoutHederaAccountId,
       active: true,
     })
     .returning();

@@ -3,7 +3,7 @@ import { schema, generateId, hashSecret } from "@hark-protocol/db";
 
 export async function createTestPublisher(
   db: HarkDatabase,
-  overrides: { slug?: string; secret?: string } = {},
+  overrides: { slug?: string; secret?: string; payoutHederaAccountId?: string } = {},
 ) {
   const secret = overrides.secret ?? "test-secret";
   const apiKeyHash = await hashSecret(secret);
@@ -14,6 +14,7 @@ export async function createTestPublisher(
       slug: overrides.slug ?? `test-publisher-${generateId("publisher")}`,
       name: "Test Publisher",
       apiKeyHash,
+      payoutHederaAccountId: overrides.payoutHederaAccountId,
       active: true,
     })
     .returning();

@@ -1,7 +1,7 @@
 import { and, eq, isNull } from "drizzle-orm";
 import type { HarkDatabase } from "@hark-protocol/db";
 import { schema, generateId } from "@hark-protocol/db";
-import { tinybarAdd, tinybarLte, type ReachConfirmation } from "@hark-protocol/protocol";
+import { splitTinybarByBps, tinybarAdd, tinybarLte, type ReachConfirmation } from "@hark-protocol/protocol";
 import { config } from "../config.js";
 import { AppError } from "../middleware/error-handler.js";
 import { recordDemoEvent } from "./demo-event-service.js";
@@ -129,12 +129,23 @@ export async function reserveOpportunityAndCreateDelivery(
         throw new AppError("OPPORTUNITY_CONSUMED", "Opportunity already consumed");
       }
 
+      // Publisher/protocol revenue split, computed once here from the
+      // configured ratio - always sums back to `price` exactly (see
+      // splitTinybarByBps). Real payout happens later, in batch, via
+      // scripts/run-publisher-payouts.ts - never per-reach.
+      const { share: publisherShareTinybar, remainder: protocolShareTinybar } = splitTinybarByBps(
+        price,
+        config.publisherShareBps,
+      );
+
       await tx.insert(schema.payments).values({
         id: paymentId,
         idempotencyKey: input.idempotencyKey,
         network: "hedera:testnet",
         asset: "0.0.0",
         amountTinybar: price,
+        publisherShareTinybar,
+        protocolShareTinybar,
       });
 
       await tx.insert(schema.deliveries).values({

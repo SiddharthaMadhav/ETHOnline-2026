@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Image from "next/image";
 import Link from "next/link";
 import "./globals.css";
 
@@ -22,8 +23,10 @@ function NavBar() {
   return (
     <header className="border-b border-zinc-200 bg-white/80 backdrop-blur dark:border-zinc-800 dark:bg-black/80 sticky top-0 z-10">
       <nav className="mx-auto flex max-w-5xl items-center justify-between px-6 py-3">
-        <Link href="/" className="font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
-          📯 Hark
+        <Link href="/" className="flex items-center">
+          <span className="rounded-md bg-white px-2 py-1.5 shadow-sm">
+            <Image src="/hark-logo.png" alt="Hark" width={128} height={32} priority />
+          </span>
         </Link>
         <div className="flex gap-5 text-sm font-medium text-zinc-600 dark:text-zinc-400">
           <Link href="/" className="hover:text-zinc-900 dark:hover:text-zinc-50">

@@ -19,6 +19,10 @@ export const publishers = pgTable("publishers", {
   domain: text("domain"),
   description: text("description"),
   apiKeyHash: text("api_key_hash").notNull(),
+  // Hedera account that revenue-share payouts are sent to. Nullable - a
+  // publisher without one configured just accrues an unpaid balance until
+  // they set one (CLAUDE.md-adjacent bonus: publisher revenue share).
+  payoutHederaAccountId: text("payout_hedera_account_id"),
   active: boolean("active").notNull().default(true),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
@@ -168,12 +172,37 @@ export const opportunities = pgTable(
 
 export const deliveryStatusEnum = ["queued", "served", "dismissed"] as const;
 
+export const payoutStatusEnum = ["pending", "paid", "failed"] as const;
+
+// Batch payout runs - one row per (publisher, payout run), not per payment.
+// Real HBAR transfer to a publisher's payoutHederaAccountId, executed by
+// scripts/run-publisher-payouts.ts, never per-reach (CLAUDE.md-adjacent
+// bonus: publisher revenue share; see docs/STATUS.md).
+export const publisherPayouts = pgTable("publisher_payouts", {
+  id: text("id").primaryKey(),
+  publisherId: text("publisher_id")
+    .notNull()
+    .references(() => publishers.id, { onDelete: "cascade" }),
+  totalTinybar: text("total_tinybar").notNull(),
+  status: text("status", { enum: payoutStatusEnum }).notNull().default("pending"),
+  transactionId: text("transaction_id"),
+  failureReason: text("failure_reason"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  paidAt: timestamp("paid_at", { withTimezone: true }),
+});
+
 export const payments = pgTable("payments", {
   id: text("id").primaryKey(),
   idempotencyKey: text("idempotency_key").notNull().unique(),
   network: text("network").notNull(),
   asset: text("asset").notNull(),
   amountTinybar: text("amount_tinybar").notNull(),
+  // Revenue split, computed once at creation from the configured share ratio
+  // (HARK_PUBLISHER_SHARE_BPS) - always sums back to amountTinybar exactly.
+  publisherShareTinybar: text("publisher_share_tinybar"),
+  protocolShareTinybar: text("protocol_share_tinybar"),
+  // Set once this payment's publisher share has been included in a payout run.
+  publisherPayoutId: text("publisher_payout_id").references(() => publisherPayouts.id),
   transactionId: text("transaction_id").unique(),
   payerAccountId: text("payer_account_id"),
   rawMetadataJson: jsonb("raw_metadata_json"),

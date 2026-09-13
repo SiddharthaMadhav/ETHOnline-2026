@@ -27,7 +27,7 @@ importers:
         version: 2.25.0
       '@x402/hedera':
         specifier: 2.25.0
-        version: 2.25.0(ansi-regex@6.2.2)(ansi-styles@7.0.0)(bn.js@5.2.3)(debug@4.4.3)(protobufjs@8.6.6)(react-native@0.87.1(@babel/core@7.29.7)(@types/react@19.3.0)(react@19.3.0))(strip-ansi@7.1.2)
+        version: 2.25.0(ansi-regex@6.2.2)(ansi-styles@6.2.3)(bn.js@5.2.3)(debug@4.4.1)(protobufjs@8.2.0)(react-native@0.87.1(@babel/core@7.29.7)(@types/react@19.3.0)(react@19.3.0))(strip-ansi@7.1.2)
       ai:
         specifier: 7.0.97
         version: 7.0.97(zod@3.25.76)
@@ -70,7 +70,7 @@ importers:
         version: 2.25.0(ethers@6.16.0)(express@5.2.1)(typescript@5.9.3)
       '@x402/hedera':
         specifier: 2.25.0
-        version: 2.25.0(ansi-regex@6.2.2)(ansi-styles@6.2.3)(bn.js@5.2.3)(debug@4.4.1)(protobufjs@8.2.0)(react-native@0.87.1(@babel/core@7.29.7)(@types/react@19.3.0)(react@19.3.0))(strip-ansi@7.1.2)
+        version: 2.25.0(ansi-regex@6.2.2)(ansi-styles@7.0.0)(bn.js@5.2.3)(debug@4.4.3)(protobufjs@8.6.6)(react-native@0.87.1(@babel/core@7.29.7)(@types/react@19.3.0)(react@19.3.0))(strip-ansi@7.1.2)
       dotenv:
         specifier: ^16.4.5
         version: 16.6.1

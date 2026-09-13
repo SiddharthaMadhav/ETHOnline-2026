@@ -1,10 +1,21 @@
 {
   "name": "@hark-protocol/protocol",
   "version": "0.1.0",
-  "private": true,
+  "description": "Shared Zod schemas, taxonomy, and constants for the Hark Protocol intent-advertising ecosystem.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SiddharthaMadhav/ETHOnline-2026.git",
+    "directory": "packages/protocol"
+  },
+  "keywords": ["hark-protocol", "hedera", "x402", "intent-advertising"],
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "files": ["dist"],
+  "publishConfig": {
+    "access": "public"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",

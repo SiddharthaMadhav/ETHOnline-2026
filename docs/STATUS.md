@@ -295,8 +295,82 @@ note above describing it as out of scope no longer applies.
       audit event (`#1`, NovaBook Agent, Laptops, 100000 tinybar, working
       HashScan tx link), zero console errors.
 
-## Phase 6/7 - Deployment, submission, remaining bonuses (NOT STARTED)
+## Phase 6 - Deployment (live)
 
-Still open: deployed Postgres/API/web, live payment run against the deployed
-API, README, demo script/video, CI, HTS asset support, multi-agent bidding,
-better discovery/UCP.
+- [x] **Neon** (Postgres) - migrated and seeded.
+- [x] **Railway** (API) - https://hark-protocol-api-production.up.railway.app.
+      Two real deploy-time bugs found and fixed: `apps/api` only listened on
+      `API_PORT`, not Railway's injected `PORT`; `@hark-protocol/db` was
+      source-only (no build step), so the compiled server crashed importing
+      a `.ts` file at runtime under plain `node` - given the same `tsc` build
+      step `packages/protocol` already had.
+- [x] **Vercel** (web) - https://web-sigma-dusky-37.vercel.app. Root
+      Directory set to `apps/web` with `pnpm install --frozen-lockfile` so
+      the pnpm workspace resolves correctly from a monorepo deploy. A UTF-8
+      BOM silently corrupted env var values piped in through Windows
+      PowerShell (`"value" | vercel env add ...`) - fixed by piping through
+      Bash instead.
+- [x] **Live-verified end-to-end against the deployed stack** (not just
+      localhost): created an intent through the deployed web app, ran
+      `pnpm agent:novabook` against the deployed API, and got a real settled
+      Hedera testnet payment - tx `0.0.7162784@1789171232.994132558` -
+      visible as a live ad on the deployed site with a working HashScan link.
+      This satisfies CLAUDE.md section 43's mandatory live-deployment checks.
+
+## Publisher revenue share (bonus, beyond CLAUDE.md's original spec)
+
+Design question raised during the build: currently 100% of every reach
+payment goes to one Hedera account (`HEDERA_PAY_TO_ACCOUNT_ID`) - the
+publisher who supplied the actual audience gets nothing. CLAUDE.md lists
+"publisher revenue sharing" as an explicit MVP non-goal (section 48), but
+since it came up, this implements a real (not aspirational) version:
+
+- [x] **Split computed once, at payment-creation time** (`payment-service.ts`),
+      via `splitTinybarByBps` (`packages/protocol/src/tinybar.ts`) - integer
+      BigInt division, share + remainder always sum back to the exact price,
+      no rounding loss. Default `HARK_PUBLISHER_SHARE_BPS=8000` (80%
+      publisher / 20% protocol) - chosen deliberately publisher-favorable,
+      since publishers are the harder side of this marketplace to bootstrap
+      and Hark's own per-transaction value-add (matching + payment rail) is
+      thin compared to what a heavier take rate would imply.
+- [x] **New schema**: `publishers.payout_hedera_account_id`,
+      `payments.publisher_share_tinybar` / `protocol_share_tinybar` /
+      `publisher_payout_id`, and a `publisher_payouts` table (one row per
+      batch payout run, not per reach).
+- [x] **Payouts are batched, not per-reach** (`payout-service.ts`,
+      `apps/api/src/jobs/run-publisher-payouts.ts`, `pnpm payout:run`) - a
+      real `TransferTransaction` (not `payTo` from the mandatory x402 flow,
+      which stays untouched) from the operator account to the publisher's
+      registered payout account, only once the accrued balance clears
+      `HARK_PAYOUT_MIN_TINYBAR` (default 0.01 HBAR - avoids paying more in
+      Hedera fees than the payout is worth). Payments are only linked to the
+      payout row *after* a successful transfer - a failed transfer marks the
+      payout row `failed` but leaves the underlying payments unpaid and
+      eligible for a future retry, so a Hedera hiccup can never silently
+      lose track of money owed to a publisher.
+- [x] `GET /v1/publishers/me/balance` (publisher-authenticated) - accrued
+      unpaid balance, for visibility.
+- [x] 8 new API unit tests (`payout-service.test.ts`, mocking
+      `@hiero-ledger/sdk` so the regular suite never makes a real transfer,
+      same principle as the HCS audit tests) plus 6 new protocol tests for
+      `splitTinybarByBps`. 31/31 `apps/api` and 35/35 `packages/protocol`
+      unit tests pass.
+- [x] **Live-verified end-to-end, twice** (local Postgres and the live Neon
+      DB): fresh intent -> real NovaBook settlement -> `GET
+      /v1/publishers/me/balance` showed the correct accrued 80% share ->
+      `pnpm payout:run` executed a real `TransferTransaction` -> independently
+      confirmed via the Hedera testnet mirror node (`result: SUCCESS`,
+      `0.0.10475939` credited exactly `80000` tinybar) -> balance endpoint
+      correctly dropped back to `0`.
+- **Not built** (explicitly out of scope per the design discussion): paying
+  the *user* directly. Hark's privacy model depends on `subjectRef` being an
+  opaque, publisher-scoped string with no linked wallet/identity - Hark
+  paying a "user" would mean either breaking that guarantee or delegating the
+  actual payout entirely to the publisher's own systems, which is a
+  publisher-side business decision outside the protocol's boundary, not
+  something Hark itself should execute.
+
+## Remaining (NOT STARTED)
+
+README, demo script/video, CI, HTS asset support, multi-agent bidding, better
+discovery/UCP.

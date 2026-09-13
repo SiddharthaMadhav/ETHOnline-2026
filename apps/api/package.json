@@ -8,7 +8,8 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/server.js",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "payout:run": "tsx src/jobs/run-publisher-payouts.ts"
   },
   "dependencies": {
     "@hark-protocol/db": "workspace:*",

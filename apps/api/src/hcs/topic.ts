@@ -1,6 +1,6 @@
 import { TopicCreateTransaction } from "@hiero-ledger/sdk";
 import { config } from "../config.js";
-import { getHcsClient } from "./client.js";
+import { getOperatorClient } from "../hedera/operator-client.js";
 
 let cachedTopicId: string | undefined = config.hcsTopicId || undefined;
 let creating: Promise<string | undefined> | undefined;
@@ -29,7 +29,7 @@ export async function getOrCreateAuditTopicId(): Promise<string | undefined> {
   if (cachedTopicId) return cachedTopicId;
   if (creating) return creating;
 
-  const client = getHcsClient();
+  const client = getOperatorClient();
   if (!client) return undefined;
 
   creating = (async () => {

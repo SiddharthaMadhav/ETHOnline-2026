@@ -11,3 +11,6 @@ coverage/
 .turbo/
 *.tsbuildinfo
 CLAUDE.md
+
+.vercel
+.env*

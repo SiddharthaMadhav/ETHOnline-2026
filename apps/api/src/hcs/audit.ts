@@ -1,5 +1,5 @@
 import { TopicMessageSubmitTransaction } from "@hiero-ledger/sdk";
-import { getHcsClient } from "./client.js";
+import { getOperatorClient } from "../hedera/operator-client.js";
 import { getOrCreateAuditTopicId } from "./topic.js";
 
 /**
@@ -30,7 +30,7 @@ export async function recordReachSettledAudit(
   event: Omit<ReachSettledAuditEvent, "schema" | "event" | "timestamp">,
 ): Promise<void> {
   try {
-    const client = getHcsClient();
+    const client = getOperatorClient();
     if (!client) return;
 
     const topicId = await getOrCreateAuditTopicId();

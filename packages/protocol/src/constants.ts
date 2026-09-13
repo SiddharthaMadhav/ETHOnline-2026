@@ -8,6 +8,7 @@ export const ID_PREFIX = {
   campaign: "cmp_",
   delivery: "del_",
   payment: "pay_",
+  payout: "pyo_",
 } as const;
 
 export type IdKind = keyof typeof ID_PREFIX;

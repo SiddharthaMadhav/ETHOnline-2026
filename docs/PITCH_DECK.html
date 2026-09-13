@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Hark Protocol — Pitch Deck</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mulish:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #faf9fc;
+    --bg-lavender: #f2effa;
+    --ink: #1a1523;
+    --ink-soft: #55506a;
+    --purple: #6d4fd6;
+    --purple-deep: #4d33a8;
+    --purple-pale: #ece5fb;
+    --line: #e2dcf2;
+    --card: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Avenir Next LT Pro", "Mulish", -apple-system, "Segoe UI", sans-serif;
+    scroll-behavior: smooth;
+  }
+  .deck {
+    max-width: 100%;
+  }
+  section.slide {
+    min-height: 100vh;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 64px 8vw;
+    border-bottom: 1px solid var(--line);
+    position: relative;
+  }
+  section.slide.lavender { background: var(--bg-lavender); }
+  section.slide.title-slide {
+    align-items: center;
+    text-align: center;
+    background: linear-gradient(180deg, #ffffff 0%, var(--bg-lavender) 100%);
+  }
+  .eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--purple);
+    margin: 0 0 16px;
+  }
+  h1 {
+    font-size: clamp(32px, 5vw, 56px);
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    margin: 0 0 16px;
+    line-height: 1.1;
+  }
+  h2 {
+    font-size: clamp(26px, 3.4vw, 38px);
+    font-weight: 800;
+    margin: 0 0 28px;
+    letter-spacing: -0.01em;
+  }
+  .title-slide h2 { text-align: center; }
+  section:not(.title-slide) h2 { text-align: left; }
+  p.lede {
+    font-size: clamp(16px, 1.6vw, 20px);
+    color: var(--ink-soft);
+    max-width: 760px;
+    line-height: 1.55;
+    margin: 0 auto;
+  }
+  .title-slide .logo {
+    width: min(560px, 70vw);
+    height: auto;
+    margin-bottom: 8px;
+  }
+  .tagline {
+    font-size: clamp(18px, 2vw, 24px);
+    color: var(--ink-soft);
+    font-weight: 600;
+    margin: 8px 0 40px;
+  }
+  .pill {
+    display: inline-block;
+    background: var(--purple-pale);
+    color: var(--purple-deep);
+    border-radius: 999px;
+    padding: 8px 20px;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .content-wrap { max-width: 980px; }
+  .content-wrap.center { margin: 0 auto; }
+  .flow {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex-wrap: wrap;
+    font-size: 15px;
+    font-weight: 600;
+    margin: 18px 0;
+  }
+  .flow .step {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 12px 18px;
+  }
+  .flow .arrow { color: var(--purple); font-weight: 800; }
+  .flow.old .step { color: var(--ink-soft); }
+  .flow.new .step { color: var(--purple-deep); border-color: var(--purple-pale); background: var(--purple-pale); }
+  .grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-top: 32px;
+  }
+  @media (max-width: 780px) {
+    .grid-3 { grid-template-columns: 1fr; }
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 24px;
+  }
+  .card h3 {
+    margin: 0 0 10px;
+    font-size: 17px;
+    color: var(--purple-deep);
+  }
+  .card p { margin: 0; color: var(--ink-soft); font-size: 14.5px; line-height: 1.5; }
+  .diagram {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 32px;
+    margin-top: 28px;
+    font-size: 14px;
+  }
+  .diagram-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .node {
+    background: var(--bg-lavender);
+    border: 1px solid var(--purple-pale);
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-weight: 700;
+    color: var(--purple-deep);
+    text-align: center;
+    min-width: 150px;
+  }
+  .node.accent { background: var(--purple); color: #fff; border-color: var(--purple); }
+  .diagram-arrow { color: var(--purple); font-size: 22px; }
+  table.data {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 24px;
+    font-size: 14.5px;
+  }
+  table.data th, table.data td {
+    text-align: left;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--line);
+  }
+  table.data th {
+    color: var(--ink-soft);
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 11.5px;
+    letter-spacing: 0.06em;
+  }
+  table.data td code {
+    background: var(--purple-pale);
+    color: var(--purple-deep);
+    padding: 2px 7px;
+    border-radius: 6px;
+    font-size: 13px;
+  }
+  a { color: var(--purple-deep); font-weight: 700; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  ul.checks { list-style: none; padding: 0; margin: 24px 0 0; }
+  ul.checks li {
+    padding: 10px 0 10px 30px;
+    position: relative;
+    color: var(--ink-soft);
+    font-size: 15px;
+    border-bottom: 1px solid var(--line);
+  }
+  ul.checks li::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: var(--purple);
+    font-weight: 800;
+  }
+  .stack-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px 32px;
+    margin-top: 24px;
+  }
+  @media (max-width: 780px) { .stack-list { grid-template-columns: 1fr; } }
+  .stack-list .row {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--line);
+    padding: 10px 0;
+    font-size: 14.5px;
+  }
+  .stack-list .row span:first-child { color: var(--ink-soft); }
+  .stack-list .row span:last-child { font-weight: 700; }
+  .links-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+    margin-top: 28px;
+  }
+  @media (max-width: 780px) { .links-grid { grid-template-columns: 1fr; } }
+  .link-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 20px 24px;
+  }
+  .link-card .kind {
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--purple);
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .link-card a { font-size: 15px; word-break: break-all; }
+  .slide-number {
+    position: absolute;
+    bottom: 24px;
+    right: 8vw;
+    font-size: 12px;
+    color: var(--ink-soft);
+    opacity: 0.6;
+  }
+  footer.close {
+    text-align: center;
+  }
+  footer.close .logo { width: min(380px, 55vw); margin-bottom: 24px; }
+</style>
+</head>
+<body>
+<div class="deck">
+
+  <section class="slide title-slide">
+    <img class="logo" src="assets/hark-logo.png" alt="Hark" />
+    <p class="tagline">Ads that listen first.</p>
+    <span class="pill">ETHOnline 2026 · Hedera AI &amp; Agentic Payments</span>
+    <div class="slide-number">01</div>
+  </section>
+
+  <section class="slide">
+    <div class="content-wrap">
+      <p class="eyebrow">The problem</p>
+      <h2>Advertising infers interest by watching people.</h2>
+      <p class="lede">Today's ad platforms build permanent behavioral profiles from
+      browsing history and clicks to guess what a user might want — a model
+      that trades user privacy for targeting accuracy, and still guesses wrong
+      most of the time.</p>
+      <div class="flow old">
+        <div class="step">Behavior tracking</div>
+        <div class="arrow">→</div>
+        <div class="step">Infer interest</div>
+        <div class="arrow">→</div>
+        <div class="step">Target user</div>
+      </div>
+    </div>
+    <div class="slide-number">02</div>
+  </section>
+
+  <section class="slide lavender">
+    <div class="content-wrap">
+      <p class="eyebrow">The Hark model</p>
+      <h2>Platforms publish temporary intent. Agents pay for relevant reach.</h2>
+      <p class="lede">A platform tells Hark what a user appears to want <em>right
+      now</em> — nothing permanent, nothing identifying. Autonomous advertiser
+      agents evaluate relevance themselves and pay only when it's worth it.</p>
+      <div class="flow new">
+        <div class="step">Temporary intent</div>
+        <div class="arrow">→</div>
+        <div class="step">Agent evaluates relevance</div>
+        <div class="arrow">→</div>
+        <div class="step">x402 payment</div>
+        <div class="arrow">→</div>
+        <div class="step">Relevant ad</div>
+      </div>
+    </div>
+    <div class="slide-number">03</div>
+  </section>
+
+  <section class="slide">
+    <div class="content-wrap">
+      <p class="eyebrow">Architecture</p>
+      <h2>Off-chain protocol, on-chain settlement.</h2>
+      <div class="diagram">
+        <div class="diagram-row">
+          <div class="node">Publisher Platform</div>
+          <div class="diagram-arrow">→</div>
+          <div class="node accent">Hark API</div>
+          <div class="diagram-arrow">→</div>
+          <div class="node">Advertiser Agent</div>
+        </div>
+        <div class="diagram-row" style="margin-top:28px;">
+          <div class="node">Blocky402 Facilitator</div>
+          <div class="diagram-arrow">→</div>
+          <div class="node accent">Hedera Testnet</div>
+          <div class="diagram-arrow">→</div>
+          <div class="node">Delivery queued</div>
+        </div>
+      </div>
+      <div class="grid-3">
+        <div class="card">
+          <h3>Off-chain</h3>
+          <p>Intent, campaigns, matching, and relevance reasoning all live in
+          Hark's API and database — never on-chain.</p>
+        </div>
+        <div class="card">
+          <h3>On-chain</h3>
+          <p>Only x402 payment settlement touches Hedera: the advertiser pays
+          HBAR, Blocky402 verifies and settles it.</p>
+        </div>
+        <div class="card">
+          <h3>No API key</h3>
+          <p><code>POST /v1/reach</code> is consumable by any advertiser agent
+          via x402 alone — no Hark subscription required.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-number">04</div>
+  </section>
+
+  <section class="slide lavender">
+    <div class="content-wrap">
+      <p class="eyebrow">Privacy boundary</p>
+      <h2>The advertiser buys reach, not identity.</h2>
+      <div class="grid-3" style="grid-template-columns: 1fr 1fr;">
+        <div class="card">
+          <h3>Advertiser agents see</h3>
+          <p>Publisher identity &amp; placement · topic · sanitized semantic
+          summary · confidence · price · expiration.</p>
+        </div>
+        <div class="card">
+          <h3>Advertiser agents never see</h3>
+          <p>Name, email, phone, IP · wallet address · publisher's internal
+          user ID · raw browsing history or conversation · any stable
+          cross-platform identifier.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-number">05</div>
+  </section>
+
+  <section class="slide">
+    <div class="content-wrap">
+      <p class="eyebrow">Payment flow — real, not simulated</p>
+      <h2>A real HBAR payment, settled through Blocky402, on Hedera testnet.</h2>
+      <table class="data">
+        <tr><th>Network</th><td><code>hedera:testnet</code></td></tr>
+        <tr><th>Asset</th><td><code>0.0.0</code> (native HBAR, 8 decimals)</td></tr>
+        <tr><th>Reach price</th><td><code>100000</code> tinybar (0.001 HBAR)</td></tr>
+        <tr><th>Facilitator</th><td>Blocky402 (<code>exact</code> scheme, testnet)</td></tr>
+        <tr><th>Facilitator fee payer</th><td><code>0.0.7162784</code></td></tr>
+        <tr><th>Hark reach-payment receiver</th><td><code>0.0.10476224</code></td></tr>
+        <tr><th>HCS audit trail topic</th><td><a href="https://hashscan.io/testnet/topic/0.0.10486387" target="_blank" rel="noopener">0.0.10486387 ↗</a></td></tr>
+        <tr><th>Example settled transaction</th><td><a href="https://hashscan.io/testnet/transaction/0.0.7162784-1789171232-994132558" target="_blank" rel="noopener">0.0.7162784@1789171232.994132558 ↗</a></td></tr>
+      </table>
+      <p class="lede" style="margin-top:20px;">Every transaction above is independently confirmed against the public
+      Hedera testnet mirror node — not just Hark's own API response.</p>
+    </div>
+    <div class="slide-number">06</div>
+  </section>
+
+  <section class="slide lavender">
+    <div class="content-wrap">
+      <p class="eyebrow">Live &amp; shipped</p>
+      <h2>What's actually running, right now.</h2>
+      <ul class="checks">
+        <li>Publisher creates a temporary intent from vague natural language ("something lightweight for college coding") via an LLM classifier</li>
+        <li>Advertiser agent discovers the anonymous opportunity and scores relevance with its own LLM call</li>
+        <li>Unpaid <code>POST /v1/reach</code> returns a real HTTP 402 with x402 payment requirements</li>
+        <li>Agent signs and retries automatically; Blocky402 settles a real HBAR payment on Hedera testnet</li>
+        <li>Delivery is queued and the ad appears on the live Demo Publisher feed</li>
+        <li>Bonus, shipped: HCS audit trail, HCS-14 advertiser identity, publisher revenue share</li>
+      </ul>
+    </div>
+    <div class="slide-number">07</div>
+  </section>
+
+  <section class="slide">
+    <div class="content-wrap">
+      <p class="eyebrow">Tech stack</p>
+      <h2>TypeScript end to end on the payment-critical path.</h2>
+      <div class="stack-list">
+        <div class="row"><span>API</span><span>Express, Zod, Drizzle ORM, PostgreSQL</span></div>
+        <div class="row"><span>Web</span><span>Next.js, React, Tailwind, shadcn/ui</span></div>
+        <div class="row"><span>Agents</span><span>Vercel AI SDK, OpenAI-backed relevance scorer</span></div>
+        <div class="row"><span>Payments</span><span>x402 v2 (@x402/core, @x402/express, @x402/fetch, @x402/hedera)</span></div>
+        <div class="row"><span>Settlement</span><span>Blocky402 facilitator, Hedera testnet, @hiero-ledger/sdk</span></div>
+        <div class="row"><span>Monorepo</span><span>pnpm workspaces, ESM, tsx</span></div>
+      </div>
+    </div>
+    <div class="slide-number">08</div>
+  </section>
+
+  <section class="slide lavender">
+    <div class="content-wrap">
+      <p class="eyebrow">Try it</p>
+      <h2>Live deployments, packages, and source.</h2>
+      <div class="links-grid">
+        <div class="link-card">
+          <div class="kind">Live web demo</div>
+          <a href="https://web-sigma-dusky-37.vercel.app" target="_blank" rel="noopener">web-sigma-dusky-37.vercel.app ↗</a>
+        </div>
+        <div class="link-card">
+          <div class="kind">Live API</div>
+          <a href="https://hark-protocol-api-production.up.railway.app" target="_blank" rel="noopener">hark-protocol-api-production.up.railway.app ↗</a>
+        </div>
+        <div class="link-card">
+          <div class="kind">npm — protocol schemas</div>
+          <a href="https://www.npmjs.com/package/@hark-protocol/protocol" target="_blank" rel="noopener">@hark-protocol/protocol ↗</a>
+        </div>
+        <div class="link-card">
+          <div class="kind">npm — publisher/advertiser SDK</div>
+          <a href="https://www.npmjs.com/package/@hark-protocol/sdk" target="_blank" rel="noopener">@hark-protocol/sdk ↗</a>
+        </div>
+        <div class="link-card">
+          <div class="kind">Source</div>
+          <a href="https://github.com/SiddharthaMadhav/ETHOnline-2026" target="_blank" rel="noopener">github.com/SiddharthaMadhav/ETHOnline-2026 ↗</a>
+        </div>
+        <div class="link-card">
+          <div class="kind">Build log (live-verified)</div>
+          <a href="STATUS.md">docs/STATUS.md</a>
+        </div>
+      </div>
+    </div>
+    <div class="slide-number">09</div>
+  </section>
+
+  <section class="slide title-slide">
+    <footer class="close">
+      <img class="logo" src="assets/hark-logo.png" alt="Hark" />
+      <p class="tagline">An open intent layer for advertising.<br/>Platforms publish temporary intent. Agents pay to reach it, on Hedera.</p>
+      <span class="pill">ETHOnline 2026 · Hedera AI &amp; Agentic Payments</span>
+    </footer>
+    <div class="slide-number">10</div>
+  </section>
+
+</div>
+</body>
+</html>
